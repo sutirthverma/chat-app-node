@@ -1,7 +1,12 @@
 const express = require('express');
+const http = require('http');
+const app = express();
+const server = http.createServer(app);
+const { Server } = require('socket.io')
+const io =  new Server(server);
+
 const { makeConnection } = require('./connection');
 const PORT = 8000;
-const app = express();
 const userRouter = require('./routes/user_router');
 const { checkForAuthCookie , checkUserLoggedIn} = require('./middlewares/auth_middleware');
 const cookieParser = require('cookie-parser');
@@ -23,4 +28,19 @@ app.get('/', checkUserLoggedIn(), (req, res) => {
 })
 app.use('/user', userRouter);
 
-app.listen(PORT, () => console.log(`Server Started`));
+
+//Socket IO
+io.on('connection', (socket) => {
+    console.log(`a user connected ${socket.id}`); 
+
+    socket.on('chat message', (message) => {
+        console.log(message);        
+        io.emit('msg', message);
+    })
+
+    socket.on('disconnect', () => {
+        console.log(`User disconnected`);        
+    })   
+})
+
+server.listen(PORT, () => console.log(`Server Started`));

@@ -1,12 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <%- include('./partials/head.ejs') %>
-    <title>Homepage Page</title>
+        <title>Homepage Page</title>
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
+
 <body>
     <h1>Homepage</h1>
-    
+    <div class="row">
+        <div class="col">
+            <input type="text" class="form-control" placeholder="Send message" aria-label="First name">
+        </div>
+        <div class="col">
+            <button class="btn btn-dark" type="submit">Send</button>
+        </div>
+    </div>
     <%- include('./partials/script.ejs') %>
+        <script>
+            let socket = io();
+            let btn = document.querySelector('.btn');
+            let inp = document.querySelector('.form-control');
+
+            btn.addEventListener('click', function () {
+                socket.emit('chat message', inp.value);
+                inp.value = '';
+            })
+
+            socket.on('msg', (msg) => {
+                console.log(msg);                
+            })
+        </script>
 </body>
+
 </html>
