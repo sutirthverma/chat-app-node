@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('./partials/head.ejs') %>
+    <title>Sign In</title>
+
+    <style>
+        body{
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h2{
+            text-align: center;
+        }
+
+        form{
+            width: 50vw;            
+        }
+
+        .btn{
+            width: 20vw;
+        }
+
+    </style>
+</head>
+
+<body>
+    <form action="/user/signin" method="post">
+        <h2>Sign In</h2>
+
+        <div class="row mb-3">
+            <label for="inputEmail3" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-10">
+                <input type="email" name="email" class="form-control" id="inputEmail3">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputPassword3" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-sm-10">
+                <input type="password" name="password" class="form-control" id="inputPassword3">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-dark ">Sign In</button>
+    </form>
+    <%- include('./partials/script.ejs') %>
+</body>
+
+</html>

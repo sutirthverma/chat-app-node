@@ -1,25 +1,26 @@
-const http = require('http');
 const express = require('express');
+const { makeConnection } = require('./connection');
 const PORT = 8000;
 const app = express();
-const path = require('path');
-const { Server } = require('socket.io');
-const server = http.createServer(app);
+const userRouter = require('./routes/user_router');
+const { checkForAuthCookie , checkUserLoggedIn} = require('./middlewares/auth_middleware');
+const cookieParser = require('cookie-parser');
 
-const io = new Server(server);
+makeConnection('mongodb://localhost:27017/chat-app')
+.then(() => console.log(`MongoDB Connected`));
 
-//Socket io
-io.on('connection', (socket) => {
-    socket.on('message', message => {
-        io.emit('message', message);
-    })   
+
+app.use(express.urlencoded({extended: false}));
+app.use(express.json());
+app.use(cookieParser());
+app.use( checkForAuthCookie('token') );
+
+app.set('view engine', 'ejs');
+app.set('views', './views');
+
+app.get('/', checkUserLoggedIn(), (req, res) => {
+    return res.render('homepage');
 })
+app.use('/user', userRouter);
 
-
-app.use(express.static(path.resolve('./public')));
-
-app.get('/', (req, res) => {
-    return res.sendFile('/public/index.html');
-})
-
-server.listen(PORT, () => console.log(`Server Started At ${PORT}`));
+app.listen(PORT, () => console.log(`Server Started`));
