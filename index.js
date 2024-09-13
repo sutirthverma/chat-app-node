@@ -9,7 +9,7 @@ const io =  new Server(server);
 const { makeConnection } = require('./connection');
 const PORT = 8000;
 const userRouter = require('./routes/user_router');
-const { checkForAuthCookie , checkUserLoggedIn} = require('./middlewares/auth_middleware');
+const { checkForAuthCookie , checkUserLoggedIn, currentUser} = require('./middlewares/auth_middleware');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
@@ -21,6 +21,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cookieParser());
 app.use( checkForAuthCookie('token') );
+app.use( currentUser());
 
 app.use(express.static(path.resolve('./public')));
 

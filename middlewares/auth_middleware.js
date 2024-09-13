@@ -37,7 +37,27 @@ function checkUserLoggedIn() {
     }
 }
 
+function currentUser(){
+    return (req, res, next) => {
+        try{
+            const token = req.cookies?.token;
+
+            if (!token) {
+                next();
+            }
+
+            const userPayload = validateToken(token);
+            req.user = userPayload;
+            next();
+        }catch(err){
+            console.log(err.message);
+            return res.redirect('/user/signin');
+        }
+    }
+}
+
 module.exports = {
     checkForAuthCookie,
-    checkUserLoggedIn
+    checkUserLoggedIn,
+    currentUser
 }

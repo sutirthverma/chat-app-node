@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
             ref: 'user'
         }
     ],
-    resSent: [{
+    reqSent: [{
         type: mongoose.Types.ObjectId,
         ref: 'user'
     }]

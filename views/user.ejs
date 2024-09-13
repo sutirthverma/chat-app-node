@@ -3,65 +3,112 @@
 
 <head>
     <%- include('./partials/head.ejs') %>
-    <title>User Page</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+        <title>User Page</title>
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
-    <style>
-        body{
-            width: 100vw;
-        }
+        <style>
+            body {
+                width: 100vw;
+            }
 
-        .row{
-            position: absolute;
-            bottom: 0;
-            width: 100vw;
-        }
+            .row {
+                position: absolute;
+                bottom: 0;
+                width: 100vw;
+            }
 
-        li{
-            list-style-type: none;
-        }
-    </style>
+            li {
+                list-style-type: none;
+            }
+
+            img {
+                width: 9em;
+                border-radius: 127px;
+                height: 9em;
+                object-fit: cover;
+                margin-bottom: 0.5em;
+            }
+
+            .user-info {
+                text-align: center;
+                margin-top: 10em;
+            }
+        </style>
 </head>
 
 <body>
     <%- include('./partials/nav.ejs') %>
-    
-    <div class="user-info">
-        <div class="profile-picture">
-            <img src="<%= user.profileImage %>" alt="User Profile Picture">
-        </div>
-        <div class="user-details">
-            <p class="username"><%= user.username %></p>
-            <div class="options">
-                <button class="accept-button">Accept</button>
-                <button class="reject-button">Reject</button>
+
+        <div class="user-info">
+            <div class="profile-picture">
+                <img src="<%= user.profileImage %>" alt="User Profile Picture">
+            </div>
+            <div class="user-details">
+                <p class="username">
+                    <%= user.username %>
+                </p>
+
+                <% if(locals.sameuser) { %>
+                    <form action="/user/delete-account" method="post">
+                        <div class="options">
+                            <button class="btn btn-danger reject-button">Delete Account</button>
+                        </div>
+                    </form>
+
+                <% } else if(locals.reqRec) { %>
+                    <div class="options">
+                        <p>They have sent you chat request!</p>
+                        <button class="btn btn-success accept-button">Accept</button>
+                        <button class="btn btn-danger reject-button">Reject</button>
+                    </div>
+                <% } else if(locals.reqSent) { %>
+                    <div class="options">
+                        <p>You have sent them chat request!</p>
+                    </div>
+                <% }else if(locals.friends) { %>
+                        <div class="options">
+                            <p>You both are friends!</p>
+                            <button class="btn btn-success reject-button">
+                                Chat
+                            </button>
+                        </div>
+                        <% }else { %>
+
+                            <form action="/user/add-friend/<%=user._id%>" method="post">
+                            <div class="options">
+                                <p>You both are not friends</p>
+                                <button type="submit" class="btn btn-success reject-button">
+                                    Add Friend
+                                </button>
+                            </div>
+                        </form>
+                    <% } %> 
             </div>
         </div>
-    </div>
 
 
-    <%- include('./partials/script.ejs') %>
-        <script>
-            let socket = io();
-            let btn = document.querySelector('.btn');
-            let inp = document.querySelector('.form-control');
-            let messages = document.querySelector('.messages');
+        <%- include('./partials/script.ejs') %>
+            <script>
+                let socket = io();
+                let btn = document.querySelector('.btn');
+                let inp = document.querySelector('.form-control');
+                let messages = document.querySelector('.messages');
 
-            btn.addEventListener('click', function () {
-                socket.emit('chat message', inp.value);
-                inp.value = '';
-            })
+                btn.addEventListener('click', function () {
+                    socket.emit('chat message', inp.value);
+                    inp.value = '';
+                })
 
-            socket.on('msg', (msg) => {
-                let item = document.createElement('li');
-                item.textContent = msg;
-                messages.appendChild(item);
-            })
+                socket.on('msg', (msg) => {
+                    let item = document.createElement('li');
+                    item.textContent = msg;
+                    messages.appendChild(item);
+                })
 
-            socket.on('disconnected', (sock) => {
-                console.log('offline');                
-            })
-        </script>
+                socket.on('disconnected', (sock) => {
+                    console.log('offline');
+                })
+            </script>
 </body>
 
 </html>

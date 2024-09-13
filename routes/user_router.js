@@ -8,13 +8,14 @@ const {
     handleSignIn,
     handleGetSearchPage,
     handleGetSearchUser,
-    handleGetUserInfo
+    handleGetUserInfo,
+    handleAddFriend
 } = require('../controllers/user_controller');
 
 const multer = require('multer');
 const storage = multer.diskStorage({
     destination: function (req, file, cb){
-        cb(null, '/')
+        cb(null, '/photos')
     },
     filename: function (req, file, cb){
         cb(null, `${Date.now()}-${file.filename}`);
@@ -37,5 +38,8 @@ Router.route('/search')
 
 Router.route('/info/:id')
 .get(handleGetUserInfo)
+
+Router.route('/add-friend/:id')
+.post(handleAddFriend)
 
 module.exports = Router;

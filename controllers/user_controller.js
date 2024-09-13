@@ -1,4 +1,5 @@
 const User = require("../models/user_model");
+const mongoose = require('mongoose');
 const { createUserToken } = require("../services/authentication");
 
 async function handleGetSignUpPage(req, res) {
@@ -97,14 +98,60 @@ async function handleGetSearchPage(req, res) {
 async function handleGetUserInfo(req, res) {
     const userId = req.params.id;
     const user = await User.findOne({ _id: userId });
+    const currUserId = req.user.id;
+    const currUser = await User.findOne({_id: currUserId});
+
+    let reqRec = false;
+    let reqSent = false;
+    let friends = false;
+    let sameuser = false;    
+
+    if(currUserId == userId){
+        sameuser = true;
+    }else if(currUser.reqRec.includes(userId)){
+        reqRec = true;
+        console.log(`reqRec entered`);        
+    }else if(currUser.reqSent.includes(userId)){
+        reqSent = true;
+        console.log(`reqSent enterd`);        
+    }else if(currUser.friends.includes(userId)){
+        friends = true;
+        console.log(`friends entered`);        
+    }
 
     if (!user) {
         return res.render('search');
     }
 
     return res.render('user', {
-        user
+        user,
+        sameuser,
+        reqRec,
+        reqSent,
+        friends
     });
+}
+
+async function handleAddFriend(req, res) {
+    try{
+    const targetId = req.params.id;
+    const currId = req.user.id;
+    const updatedUser = await User.findByIdAndUpdate(currId, {
+        $push: {
+            reqSent: targetId
+        }
+    });
+    const targetUser = await User.findByIdAndUpdate(targetId, {
+        $push: {
+            reqRec: currId
+        }
+    });
+    return res.render('search');
+} catch(err){
+    console.log('Error: ' + err.message);
+    return res.render('search');
+
+}
 }
 
 module.exports = {
@@ -114,5 +161,6 @@ module.exports = {
     handleSignIn,
     handleGetSearchPage,
     handleGetSearchUser,
-    handleGetUserInfo
+    handleGetUserInfo,
+    handleAddFriend
 }
