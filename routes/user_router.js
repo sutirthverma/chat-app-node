@@ -5,15 +5,37 @@ const {
     handleGetSignUpPage,
     handleSignUp,
     handleGetSignInPage,
-    handleSignIn
+    handleSignIn,
+    handleGetSearchPage,
+    handleGetSearchUser,
+    handleGetUserInfo
 } = require('../controllers/user_controller');
+
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb){
+        cb(null, '/')
+    },
+    filename: function (req, file, cb){
+        cb(null, `${Date.now()}-${file.filename}`);
+    }
+})
+
+const upload = multer({storage});
 
 Router.route('/signup')
 .get(handleGetSignUpPage)
-.post(handleSignUp)
+.post(upload.single('profileImage'), handleSignUp)
 
 Router.route('/signin')
 .get(handleGetSignInPage)
 .post(handleSignIn)
+
+Router.route('/search')
+.get(handleGetSearchPage)
+.post(handleGetSearchUser)
+
+Router.route('/info/:id')
+.get(handleGetUserInfo)
 
 module.exports = Router;

@@ -3,6 +3,11 @@ const mongoose = require('mongoose');
 const { createUserToken } = require('../services/authentication');
 
 const userSchema = new mongoose.Schema({
+    profileImage: {
+        type: String,
+        default: '/default.jpg'
+
+    },
     username: {
         type: String,
         unique: true,
@@ -20,7 +25,23 @@ const userSchema = new mongoose.Schema({
     },
     salt: {
         type: String
-    }
+    },
+    friends: [
+        {
+            type: mongoose.Types.ObjectId,
+            ref: 'user'
+        }
+    ],
+    reqRec: [
+        {
+            type: mongoose.Types.ObjectId,
+            ref: 'user'
+        }
+    ],
+    resSent: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'user'
+    }]
 }, {timestamp: true});
 
 userSchema.pre('save', function (next){

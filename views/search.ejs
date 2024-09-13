@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('./partials/head.ejs') %>
+        <title>Connect - Search</title>
+
+        <style>
+            header{
+                text-align: center;
+            }
+
+            .userBox{
+                display: flex;
+                align-items: center;
+                /* justify-content: center; */
+            }
+
+            .chatIcon{
+                width: 1em;
+                height: 1em;
+                margin-left: 2em;
+            }
+
+            .userLink{
+                text-decoration: none;
+                color: black;                
+            }
+
+            .userBox{
+                padding: 1em;
+                border-bottom: 1px solid black;
+                width: 26em;
+            }
+        </style>
+</head>
+
+<body>
+    <%- include('./partials/nav.ejs') %>
+
+    <% if(locals.message) { %>
+        <div class="alert alert-danger" role="alert">
+            <%= message %>
+        </div>
+
+    <% } %>
+
+    <header>
+        <h2>Search</h2>
+    </header>
+
+
+        <form action="/user/search" method="post">           
+
+        <div class="row">
+            <div class="col">
+            <input class="form-control" name="searchName" list="datalistOptions" id="exampleDataList"
+                placeholder="Search other users">
+            </div>
+            <div class="col">
+                <button class="btn btn-dark" type="submit">Find</button>
+                </div>
+        </div>
+        </form>
+
+        <% if(locals.usersList) { %>
+        <div class="list">
+            <% usersList.forEach(user => { %>
+                <a class="userLink" href='/user/info/<%=user.id%>'>
+                <div class="userBox">
+                    <img src="" alt="" class="userProfile">
+                    <div class="username">
+                        <%= user.username %>
+                    </div>
+                </div>
+                </a>
+
+            <% }) %>
+        </div>
+        <% } %>
+
+
+        <%- include('./partials/script.ejs') %>
+</body>
+
+</html>

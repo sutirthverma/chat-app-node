@@ -1,36 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <%- include('./partials/head.ejs') %>
-    <title>Sign Up</title>
+        <title>Sign Up</title>
 
-    <style>
-        body{
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        <style>
+            body {
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
 
-        h2{
-            text-align: center;
-        }
+            h2 {
+                text-align: center;
+            }
 
-        form{
-            width: 50vw;            
-        }
+            form {
+                width: 50vw;
+            }
 
-        .btn{
-            width: 20vw;
-        }
-
-    </style>
+            .btn {
+                width: 20vw;
+            }
+        </style>
 </head>
+
 <body>
-    <form action="/user/signup" method="post">
-    <h2>Sign Up</h2>
+    <form action="/user/signup" method="post" enctype="multipart/form-data">
+        <h2>Sign Up</h2>
 
         <div class="row mb-3 mt-5">
+            <label for="inputProfile" class="col-sm-2 col-form-label">Avatar</label>
+            <div class="col-sm-10">
+                <input type="file" name="profileImage" class="form-control" id="inputProfile">
+            </div>
+        </div>
+
+        <div class="row mb-3">
             <label for="inputEmail3" class="col-sm-2 col-form-label">Username</label>
             <div class="col-sm-10">
                 <input type="text" name="username" class="form-control" id="inputEmail3">
@@ -52,4 +60,5 @@
     </form>
     <%- include('./partials/script.ejs') %>
 </body>
+
 </html>

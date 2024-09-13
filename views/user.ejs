@@ -3,7 +3,7 @@
 
 <head>
     <%- include('./partials/head.ejs') %>
-    <title>Homepage Page</title>
+    <title>User Page</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
     <style>
@@ -26,13 +26,16 @@
 <body>
     <%- include('./partials/nav.ejs') %>
     
-    <div class="messages"></div>
-    <div class="row">
-        <div class="col">
-            <input type="text" class="form-control" placeholder="Send message" aria-label="First name">
+    <div class="user-info">
+        <div class="profile-picture">
+            <img src="<%= user.profileImage %>" alt="User Profile Picture">
         </div>
-        <div class="col">
-            <button class="btn btn-dark" type="submit">Send</button>
+        <div class="user-details">
+            <p class="username"><%= user.username %></p>
+            <div class="options">
+                <button class="accept-button">Accept</button>
+                <button class="reject-button">Reject</button>
+            </div>
         </div>
     </div>
 
