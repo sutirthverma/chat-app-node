@@ -62,9 +62,14 @@
                         <button class="btn btn-danger reject-button">Reject</button>
                     </div>
                 <% } else if(locals.reqSent) { %>
-                    <div class="options">
-                        <p>You have sent them chat request!</p>
-                    </div>
+                    <form action="/user/remove-request/<%=user._id%>" method="post">
+                        <div class="options">
+                            <p>You have sent them chat request!</p>
+                            <button type="submit" class="btn btn-danger reject-button">
+                                Remove Request
+                            </button>
+                        </div>
+                    </form>
                 <% }else if(locals.friends) { %>
                         <div class="options">
                             <p>You both are friends!</p>

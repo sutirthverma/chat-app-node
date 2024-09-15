@@ -1,6 +1,7 @@
 const { createHmac, randomBytes, hash } = require('node:crypto');
 const mongoose = require('mongoose');
 const { createUserToken } = require('../services/authentication');
+const { log } = require('node:console');
 
 const userSchema = new mongoose.Schema({
     profileImage: {
@@ -71,6 +72,9 @@ userSchema.static('matchPasswordAndGenerateToken', async function (email, passwo
     if(hashedPassword !== userProvidedHash) throw new Error('incorrect Email/Password');
 
     const token = createUserToken(user);
+
+    console.log('match password generate');
+    
     return token;
 })
 

@@ -9,7 +9,8 @@ const {
     handleGetSearchPage,
     handleGetSearchUser,
     handleGetUserInfo,
-    handleAddFriend
+    handleAddFriend,
+    handleRemoveRequest
 } = require('../controllers/user_controller');
 
 const multer = require('multer');
@@ -41,5 +42,8 @@ Router.route('/info/:id')
 
 Router.route('/add-friend/:id')
 .post(handleAddFriend)
+
+Router.route('/remove-request/:id')
+.post(handleRemoveRequest)
 
 module.exports = Router;

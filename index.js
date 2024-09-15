@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cookieParser());
 app.use( checkForAuthCookie('token') );
-app.use( currentUser());
+//app.use( currentUser());
 
 app.use(express.static(path.resolve('./public')));
 
@@ -45,8 +45,6 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log(`User disconnected`);
-
-
         socket.emit('disconnected');
     })   
 })

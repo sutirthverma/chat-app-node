@@ -1,6 +1,7 @@
 const User = require("../models/user_model");
 const mongoose = require('mongoose');
 const { createUserToken } = require("../services/authentication");
+const { currentUser } = require("../middlewares/auth_middleware");
 
 async function handleGetSignUpPage(req, res) {
     return res.render('signup')
@@ -39,18 +40,39 @@ async function handleGetSignInPage(req, res) {
 
 async function handleSignIn(req, res) {
     try {
+
+        console.log('entered handle sign in');
+        
         const { email, password } = req.body;
 
         const token = await User.matchPasswordAndGenerateToken(email, password);
         console.log(token);
 
+        console.log(`token finding token`);
+
+
 
         const user = await User.findOne({
-            email,
-            password
+            email
         });
 
-        return res.cookie('token', token).redirect('/');
+        console.log('finding user');
+        
+
+        if (!user) {
+            throw new Error('Invalid credentials');
+        }
+
+        res.cookie('token', token);
+
+        //Set current user
+        currentUser();
+
+        console.log(`cookie set`);
+
+        console.log(`homepage token`);
+        
+        return res.redirect('/');
     } catch (error) {
         console.log(error.message);
 
@@ -99,24 +121,24 @@ async function handleGetUserInfo(req, res) {
     const userId = req.params.id;
     const user = await User.findOne({ _id: userId });
     const currUserId = req.user.id;
-    const currUser = await User.findOne({_id: currUserId});
+    const currUser = await User.findOne({ _id: currUserId });
 
     let reqRec = false;
     let reqSent = false;
     let friends = false;
-    let sameuser = false;    
+    let sameuser = false;
 
-    if(currUserId == userId){
+    if (currUserId == userId) {
         sameuser = true;
-    }else if(currUser.reqRec.includes(userId)){
+    } else if (currUser.reqRec.includes(userId)) {
         reqRec = true;
-        console.log(`reqRec entered`);        
-    }else if(currUser.reqSent.includes(userId)){
+        console.log(`reqRec entered`);
+    } else if (currUser.reqSent.includes(userId)) {
         reqSent = true;
-        console.log(`reqSent enterd`);        
-    }else if(currUser.friends.includes(userId)){
+        console.log(`reqSent enterd`);
+    } else if (currUser.friends.includes(userId)) {
         friends = true;
-        console.log(`friends entered`);        
+        console.log(`friends entered`);
     }
 
     if (!user) {
@@ -133,25 +155,54 @@ async function handleGetUserInfo(req, res) {
 }
 
 async function handleAddFriend(req, res) {
-    try{
-    const targetId = req.params.id;
-    const currId = req.user.id;
-    const updatedUser = await User.findByIdAndUpdate(currId, {
-        $push: {
-            reqSent: targetId
-        }
-    });
-    const targetUser = await User.findByIdAndUpdate(targetId, {
-        $push: {
-            reqRec: currId
-        }
-    });
-    return res.render('search');
-} catch(err){
-    console.log('Error: ' + err.message);
-    return res.render('search');
+    try {
+        const targetId = req.params.id;
+        const currId = req.user.id;
+        const updatedUser = await User.findByIdAndUpdate(currId, {
+            $push: {
+                reqSent: targetId
+            }
+        });
+        const targetUser = await User.findByIdAndUpdate(targetId, {
+            $push: {
+                reqRec: currId
+            }
+        });
+        return res.redirect(`/user/info/${targetId}`);
+    } catch (err) {
+        console.log('Error: ' + err.message);
+        return res.render('search');
 
+    }
 }
+
+async function handleRemoveRequest(req, res) {
+    try {
+        const targetId = new mongoose.Types.ObjectId(req.params.id);
+        const currId = new mongoose.Types.ObjectId(req.user.id);
+
+        console.log(targetId);
+        console.log(currId);
+        
+
+        await User.findByIdAndUpdate(currId, {
+            $pop: {
+                reqSent: targetId
+            }
+        });
+
+        await User.findByIdAndUpdate(targetId, {
+            $pop: {
+                reqRec: currId,
+            }
+        });
+
+        return res.redirect(`/user/info/${targetId}`);
+    } catch (err) {
+        console.log('Error: ' + err.message);
+        return res.render('search');
+
+    }
 }
 
 module.exports = {
@@ -162,5 +213,6 @@ module.exports = {
     handleGetSearchPage,
     handleGetSearchUser,
     handleGetUserInfo,
-    handleAddFriend
+    handleAddFriend,
+    handleRemoveRequest
 }
