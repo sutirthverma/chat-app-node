@@ -33,6 +33,10 @@
                 text-align: center;
                 margin-top: 10em;
             }
+
+            .userid{
+                display: none;
+            }
         </style>
 </head>
 
@@ -44,16 +48,14 @@
                 <img src="<%= user.profileImage %>" alt="User Profile Picture">
             </div>
             <div class="user-details">
-                <p class="username">
-                    <%= user.username %>
-                </p>
+                <p class="username"><%= user.username %></p>
+
+                <p class="userid"><%= user._id %></p>
 
                 <% if(locals.sameuser) { %>
-                    <form action="/user/delete-account" method="post">
                         <div class="options">
-                            <button class="btn btn-danger reject-button">Delete Account</button>
+                            <button class="btn btn-danger reject-button delete">Delete Account</button>
                         </div>
-                    </form>
 
                 <% } else if(locals.reqRec) { %>
                     <div class="options">
@@ -98,6 +100,15 @@
                 let btn = document.querySelector('.btn');
                 let inp = document.querySelector('.form-control');
                 let messages = document.querySelector('.messages');
+                let deleteButton = document.querySelector('.delete');
+                let userId = document.querySelector('.userid');
+
+                //Delete account
+                deleteButton.addEventListener('click', function () {
+                    console.log('entered' + userId.textContent);
+                    
+                    removeRequest(userId.textContent);
+                })
 
                 btn.addEventListener('click', function () {
                     socket.emit('chat message', inp.value);
@@ -113,6 +124,25 @@
                 socket.on('disconnected', (sock) => {
                     console.log('offline');
                 })
+
+                //delete account api call
+                async function removeRequest(targetId){
+
+                    try{
+                    console.log('entered');
+                    console.log(`target id ${targetId}`);
+                    
+
+                    const resp = await fetch(`http://localhost:8000/user/remove-account/${targetId}`, {
+                        method: 'DELETE',
+                    });
+
+                } catch(err){
+                    console.log(err.message);
+                    
+                }
+                }
+                
             </script>
 </body>
 

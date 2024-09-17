@@ -23,6 +23,12 @@
 
             .btn {
                 width: 20vw;
+                margin-bottom: 2em;
+            }
+
+            .signIn{
+                font-weight: bold;
+                text-decoration: none;
             }
         </style>
 </head>
@@ -57,6 +63,9 @@
             </div>
         </div>
         <button type="submit" class="btn btn-dark ">Sign Up</button>
+
+        <p>Already registered? <a class="signIn" href="/user/signin">Sign In</a> </p>
+
     </form>
     <%- include('./partials/script.ejs') %>
 </body>

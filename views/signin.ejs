@@ -23,6 +23,18 @@
 
         .btn{
             width: 20vw;
+            margin-bottom: 2em;
+        }
+
+        a{
+            text-decoration: none;
+            display: inline;
+        }
+
+
+        .createAccount{
+            font-weight: bold;
+            margin-top: 2em;
         }
 
     </style>
@@ -45,6 +57,9 @@
             </div>
         </div>
         <button type="submit" class="btn btn-dark ">Sign In</button>
+
+        <p>Not registered yet? <a class="createAccount dark" href="/user/signup">Create an account</a> </p>
+
     </form>
     <%- include('./partials/script.ejs') %>
 </body>

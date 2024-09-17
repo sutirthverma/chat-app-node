@@ -1,5 +1,6 @@
 const User = require("../models/user_model");
-const mongoose = require('mongoose');
+const { Types } = require('mongoose');
+
 const { createUserToken } = require("../services/authentication");
 const { currentUser } = require("../middlewares/auth_middleware");
 
@@ -176,14 +177,14 @@ async function handleAddFriend(req, res) {
     }
 }
 
+//Not working currently
 async function handleRemoveRequest(req, res) {
     try {
-        const targetId = new mongoose.Types.ObjectId(req.params.id);
-        const currId = new mongoose.Types.ObjectId(req.user.id);
+        const targetId = new Types.ObjectId(req.params.id);
+        const currId = new Types.ObjectId(req.user.id);
 
         console.log(targetId);
         console.log(currId);
-        
 
         await User.findByIdAndUpdate(currId, {
             $pop: {
@@ -201,9 +202,25 @@ async function handleRemoveRequest(req, res) {
     } catch (err) {
         console.log('Error: ' + err.message);
         return res.render('search');
-
     }
 }
+
+async function handleDeleteAccount (req, res){
+    try{
+    const targetId = req.params.id;
+    await User.deleteOne({_id: targetId});
+    res.clearCookie('token');
+    return res.render('signup', {
+        success: 'Account deleted successfully'
+    })
+} catch(err){
+    console.log(err.message);
+    return res.render('signup');
+    
+}
+
+}
+
 
 module.exports = {
     handleGetSignUpPage,
@@ -214,5 +231,6 @@ module.exports = {
     handleGetSearchUser,
     handleGetUserInfo,
     handleAddFriend,
-    handleRemoveRequest
+    handleRemoveRequest,
+    handleDeleteAccount
 }
