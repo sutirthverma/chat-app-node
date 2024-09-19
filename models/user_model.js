@@ -59,6 +59,36 @@ userSchema.pre('save', function (next){
     next();
 });
 
+userSchema.pre('remove', async function (next){
+    try{
+        const affectedUsers = await User.find({
+            $or: [
+                { reqSent: this._id },
+                { reqRec: this._id },
+                { friends: this._id }
+            ]
+        });
+        
+        for(const user of affectedUsers){
+            await user.updateOne({
+                $pull: {
+                     reqSent: this._id,
+                     reqRec: this._id,
+                     friends: this._id
+                }
+            })
+        }
+
+        next();
+    }catch(err){
+        console.log('error is hereerer');
+        
+        console.log(err.message);
+        next();
+        
+    }
+})
+
 userSchema.static('matchPasswordAndGenerateToken', async function (email, password){
     const user = await this.findOne({email});
 

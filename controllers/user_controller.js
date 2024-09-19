@@ -43,7 +43,7 @@ async function handleSignIn(req, res) {
     try {
 
         console.log('entered handle sign in');
-        
+
         const { email, password } = req.body;
 
         const token = await User.matchPasswordAndGenerateToken(email, password);
@@ -58,7 +58,7 @@ async function handleSignIn(req, res) {
         });
 
         console.log('finding user');
-        
+
 
         if (!user) {
             throw new Error('Invalid credentials');
@@ -72,7 +72,7 @@ async function handleSignIn(req, res) {
         console.log(`cookie set`);
 
         console.log(`homepage token`);
-        
+
         return res.redirect('/');
     } catch (error) {
         console.log(error.message);
@@ -81,6 +81,11 @@ async function handleSignIn(req, res) {
             error: error.message
         })
     }
+}
+
+async function handleUserSignOut(req, res) {
+    res.clearCookie('token');
+    return res.render('signin');
 }
 
 async function handleGetSearchUser(req, res) {
@@ -120,7 +125,7 @@ async function handleGetSearchPage(req, res) {
 //User Info
 async function handleGetUserInfo(req, res) {
     const userId = req.params.id;
-    const user = await User.findOne({ _id: userId });
+    const searchedUser = await User.findOne({ _id: userId });
     const currUserId = req.user.id;
     const currUser = await User.findOne({ _id: currUserId });
 
@@ -142,12 +147,13 @@ async function handleGetUserInfo(req, res) {
         console.log(`friends entered`);
     }
 
-    if (!user) {
+    if (!searchedUser) {
         return res.render('search');
     }
 
     return res.render('user', {
-        user,
+        user: currUser,
+        searchedUser,
         sameuser,
         reqRec,
         reqSent,
@@ -177,23 +183,22 @@ async function handleAddFriend(req, res) {
     }
 }
 
-//Not working currently
 async function handleRemoveRequest(req, res) {
     try {
-        const targetId = new Types.ObjectId(req.params.id);
-        const currId = new Types.ObjectId(req.user.id);
+        const targetId = req.params.id;
+        const currId = req.user.id;
 
         console.log(targetId);
         console.log(currId);
 
         await User.findByIdAndUpdate(currId, {
-            $pop: {
+            $pull: {
                 reqSent: targetId
             }
         });
 
         await User.findByIdAndUpdate(targetId, {
-            $pop: {
+            $pull: {
                 reqRec: currId,
             }
         });
@@ -205,22 +210,92 @@ async function handleRemoveRequest(req, res) {
     }
 }
 
-async function handleDeleteAccount (req, res){
-    try{
+async function handleDeleteAccount(req, res) {
+    try {
+        const targetId = req.params.id;
+        await User.deleteOne({ _id: targetId });
+        res.clearCookie('token');
+        return res.status(200).json({
+            message: 'Account deleted successfully'
+        })
+    } catch (err) {
+        console.log(err.message);
+        return res.status(400).json({ message: err.message });
+    }
+}
+
+
+//Handling Friend Request
+async function handleAcceptFriendRequest(req, res){
     const targetId = req.params.id;
-    await User.deleteOne({_id: targetId});
-    res.clearCookie('token');
-    return res.render('signup', {
-        success: 'Account deleted successfully'
-    })
-} catch(err){
-    console.log(err.message);
-    return res.render('signup');
-    
+    const currId = req.user.id;
+
+    await User.findByIdAndUpdate(targetId, {
+        $push: {
+            friends: currId
+        },
+        $pull: {
+            reqSent: currId
+        }
+    });
+
+    await User.findByIdAndUpdate(currId, {
+        $push: {
+            friends: targetId
+        },
+        $pull: {
+            reqRec: targetId
+        }
+    });
 }
 
+async function handleRejectRequest(req, res){
+    try{
+        console.log('entered reject ');
+        
+        const targetId = req.params.id;
+        const currId = req.user.id;
+
+        await User.findByIdAndUpdate(targetId, {
+            $pull: {
+                reqSent: currId
+            }
+        });
+
+        await User.findByIdAndUpdate(currId, {
+            $pull: {
+                reqRec: targetId
+            }
+        });
+    }catch(err){
+        console.log(err.message);        
+        return res.redirect(`/user/info/${targetId}`);
+    }
 }
 
+async function handleRemoveFriend(req, res){
+    try{
+        const targetId = req.params.id;
+        const currId = req.user.id;
+
+        await User.findByIdAndUpdate(targetId, {
+            $pull: {
+                friends: currId
+            }
+        });
+
+        await User.findByIdAndUpdate(currId, {
+            $pull: {
+                friends: targetId
+            }
+        });
+
+        return res.redirect(`/user/info/${targetId}`);
+    }catch(err){
+        console.log(err.message);
+        return res.redirect('/');    
+    }
+}
 
 module.exports = {
     handleGetSignUpPage,
@@ -232,5 +307,9 @@ module.exports = {
     handleGetUserInfo,
     handleAddFriend,
     handleRemoveRequest,
-    handleDeleteAccount
+    handleDeleteAccount,
+    handleUserSignOut,
+    handleAcceptFriendRequest,
+    handleRejectRequest,
+    handleRemoveFriend
 }

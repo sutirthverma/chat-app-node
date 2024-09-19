@@ -34,7 +34,7 @@
                 margin-top: 10em;
             }
 
-            .userid{
+            .userid {
                 display: none;
             }
         </style>
@@ -45,51 +45,58 @@
 
         <div class="user-info">
             <div class="profile-picture">
-                <img src="<%= user.profileImage %>" alt="User Profile Picture">
+                <img src="<%= searchedUser.profileImage %>" alt="User Profile Picture">
             </div>
             <div class="user-details">
-                <p class="username"><%= user.username %></p>
+                <p class="username">
+                    <%= searchedUser.username %>
+                </p>
 
-                <p class="userid"><%= user._id %></p>
+                <p class="userid">
+                    <%= searchedUser._id %>
+                </p>
 
                 <% if(locals.sameuser) { %>
-                        <div class="options">
-                            <button class="btn btn-danger reject-button delete">Delete Account</button>
-                        </div>
-
-                <% } else if(locals.reqRec) { %>
                     <div class="options">
-                        <p>They have sent you chat request!</p>
-                        <button class="btn btn-success accept-button">Accept</button>
-                        <button class="btn btn-danger reject-button">Reject</button>
+                        <button class="btn btn-danger reject-button delete">Delete Account</button>
                     </div>
-                <% } else if(locals.reqSent) { %>
-                    <form action="/user/remove-request/<%=user._id%>" method="post">
-                        <div class="options">
-                            <p>You have sent them chat request!</p>
-                            <button type="submit" class="btn btn-danger reject-button">
-                                Remove Request
-                            </button>
-                        </div>
-                    </form>
-                <% }else if(locals.friends) { %>
-                        <div class="options">
-                            <p>You both are friends!</p>
-                            <button class="btn btn-success reject-button">
-                                Chat
-                            </button>
-                        </div>
-                        <% }else { %>
 
-                            <form action="/user/add-friend/<%=user._id%>" method="post">
-                            <div class="options">
-                                <p>You both are not friends</p>
-                                <button type="submit" class="btn btn-success reject-button">
-                                    Add Friend
-                                </button>
-                            </div>
-                        </form>
-                    <% } %> 
+                    <% } else if(locals.reqRec) { %>
+                        <div class="options">
+                            <p>They have sent you chat request!</p>
+                            <button class="btn btn-success accept-button">Accept</button>
+                            <button class="btn btn-danger reject-button">Reject</button>
+                        </div>
+                        <% } else if(locals.reqSent) { %>
+                            <form action="/user/remove-request/<%=searchedUser._id%>" method="post">
+                                <div class="options">
+                                    <p>You have sent them chat request!</p>
+                                    <button type="submit" class="btn btn-danger reject-button">
+                                        Remove Request
+                                    </button>
+                                </div>
+                            </form>
+                            <% }else if(locals.friends) { %>
+                                <div class="options">
+                                    <p>You both are friends!</p>
+                                    <button class="btn btn-success chat-button">
+                                        Chat
+                                    </button>
+                                    <button class="btn btn-danger remove-friend">
+                                        Remove Friend
+                                    </button>
+                                </div>
+                                <% }else { %>
+
+                                    <form action="/user/add-friend/<%=searchedUser._id%>" method="post">
+                                        <div class="options">
+                                            <p>You both are not friends</p>
+                                            <button type="submit" class="btn btn-success reject-button">
+                                                Add Friend
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <% } %>
             </div>
         </div>
 
@@ -101,14 +108,43 @@
                 let inp = document.querySelector('.form-control');
                 let messages = document.querySelector('.messages');
                 let deleteButton = document.querySelector('.delete');
-                let userId = document.querySelector('.userid');
+                let userId = document.querySelector('.userid').textContent.trim();
+                let acceptButton = document.querySelector('.accept-button');
+                let rejectButton = document.querySelector('.reject-button');
+                let removeFriendButton = document.querySelector('.remove-friend');
+
+
+
 
                 //Delete account
-                deleteButton.addEventListener('click', function () {
-                    console.log('entered' + userId.textContent);
-                    
-                    removeRequest(userId.textContent);
-                })
+                if (deleteButton) {
+                    deleteButton.addEventListener('click', function () {
+                        console.log('entered' + userId);
+
+                        removeRequest(userId);
+                    })
+                }
+
+                //Accept friend request
+                if (acceptButton) {
+                    acceptButton.addEventListener('click', function () {
+                        acceptFriendRequest(userId);
+                    })
+                }
+
+                //Reject friend request
+                if (rejectButton) {
+                    rejectButton.addEventListener('click', function () {
+                        rejectFriendRequest(userId);
+                    })
+                }
+
+                //remove friend
+                if (removeFriendButton) {
+                    removeFriendButton.addEventListener('click', function () {
+                        removeFriend(userId);
+                    })
+                }
 
                 btn.addEventListener('click', function () {
                     socket.emit('chat message', inp.value);
@@ -126,23 +162,72 @@
                 })
 
                 //delete account api call
-                async function removeRequest(targetId){
+                async function removeRequest(targetId) {
 
-                    try{
-                    console.log('entered');
-                    console.log(`target id ${targetId}`);
-                    
+                    try {
+                        console.log('entered');
+                        console.log(`target id ${targetId}`);
 
-                    const resp = await fetch(`http://localhost:8000/user/remove-account/${targetId}`, {
-                        method: 'DELETE',
-                    });
 
-                } catch(err){
-                    console.log(err.message);
-                    
+                        fetch(`http://localhost:8000/user/remove-account/${targetId}`, {
+                            method: 'DELETE',
+                        }).then(resp => {
+
+                            if (resp.ok) {
+                                fetch(`http://localhost:8000/`, {
+                                    method: 'GET'
+                                });
+                            } else {
+                                fetch(`http://localhost:8000/`, {
+                                    method: 'GET'
+                                });
+                            }
+                        });
+                    } catch (err) {
+                        console.log(err.message);
+
+                    }
                 }
+
+                async function acceptFriendRequest(targetId) {
+                    try {
+                        fetch(`http://localhost:8000/user/accept-request/${targetId}`, {
+                            method: 'POST',
+                        });
+
+                        location.reload();
+                    } catch (err) {
+
+                        alert(err.message);
+                    }
                 }
-                
+
+                async function rejectFriendRequest(targetId) {
+                    try {
+                        fetch(`http://localhost:8000/user/reject-request/${targetId}`, {
+                            method: 'POST',
+                        });
+
+                        location.reload();
+                    } catch (err) {
+
+                        alert(err.message);
+                    }
+                }
+
+                async function removeFriend(targetId){
+                    try {
+                        fetch(`http://localhost:8000/user/remove-friend/${targetId}`, {
+                            method: 'POST',
+                        });
+
+                        location.reload();
+                    } catch (err) {
+
+                        alert(err.message);
+                    }
+                }
+
             </script>
 </body>
 

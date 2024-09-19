@@ -11,7 +11,11 @@ const {
     handleGetUserInfo,
     handleAddFriend,
     handleRemoveRequest,
-    handleDeleteAccount
+    handleDeleteAccount,
+    handleUserSignOut,
+    handleAcceptFriendRequest,
+    handleRejectRequest,
+    handleRemoveFriend
 } = require('../controllers/user_controller');
 
 const multer = require('multer');
@@ -34,6 +38,9 @@ Router.route('/signin')
 .get(handleGetSignInPage)
 .post(handleSignIn)
 
+Router.route('/signout/:id')
+.get(handleUserSignOut)
+
 Router.route('/search')
 .get(handleGetSearchPage)
 .post(handleGetSearchUser)
@@ -49,5 +56,14 @@ Router.route('/remove-request/:id')
 
 Router.route('/remove-account/:id')
 .delete(handleDeleteAccount)
+
+Router.route('/accept-request/:id')
+.post(handleAcceptFriendRequest)
+
+Router.route('/reject-request/:id')
+.post(handleRejectRequest)
+
+Router.route('/remove-friend/:id')
+.post(handleRemoveFriend)
 
 module.exports = Router;

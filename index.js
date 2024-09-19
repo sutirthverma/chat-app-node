@@ -29,7 +29,9 @@ app.set('view engine', 'ejs');
 app.set('views', './views');
 
 app.get('/', checkUserLoggedIn(), (req, res) => {
-    return res.render('homepage');
+    return res.render('homepage', {
+        user: req.user
+    });
 })
 app.use('/user', userRouter);
 
