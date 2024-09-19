@@ -9,6 +9,7 @@ const io =  new Server(server);
 const { makeConnection } = require('./connection');
 const PORT = 8000;
 const userRouter = require('./routes/user_router');
+const messageRouter = require('./routes/message_router');
 const { checkForAuthCookie , checkUserLoggedIn, currentUser} = require('./middlewares/auth_middleware');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -42,7 +43,7 @@ app.get('/', checkUserLoggedIn(), async (req, res) => {
 })
 
 app.use('/user', userRouter);
-
+app.use('/message', messageRouter);
 
 //Socket IO
 io.on('connection', (socket) => {
