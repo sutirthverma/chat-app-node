@@ -95,7 +95,8 @@ async function handleGetSearchUser(req, res) {
 
         if (!userToFind) {
             return res.render('search', {
-                message: 'Please enter a valid username'
+                message: 'Please enter a valid username',
+                user: req.user
             })
         }
 
@@ -106,11 +107,15 @@ async function handleGetSearchUser(req, res) {
 
         if (usersList.length <= 0) {
             return res.render('search', {
-                message: 'No user found'
+                message: 'No user found',
+                user: req.user
             })
         }
 
-        res.render('search', { usersList });
+        res.render('search', {
+             usersList ,
+             user: req.user
+            });
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).send('Server error');
@@ -118,7 +123,9 @@ async function handleGetSearchUser(req, res) {
 }
 
 async function handleGetSearchPage(req, res) {
-    return res.render('search');
+    return res.render('search', {
+        user: req.user
+    });
 }
 
 
@@ -148,7 +155,9 @@ async function handleGetUserInfo(req, res) {
     }
 
     if (!searchedUser) {
-        return res.render('search');
+        return res.render('search', {
+            user: req.user
+        });
     }
 
     return res.render('user', {
@@ -178,7 +187,9 @@ async function handleAddFriend(req, res) {
         return res.redirect(`/user/info/${targetId}`);
     } catch (err) {
         console.log('Error: ' + err.message);
-        return res.render('search');
+        return res.render('search', {
+            user: req.user
+        });
 
     }
 }
@@ -206,7 +217,9 @@ async function handleRemoveRequest(req, res) {
         return res.redirect(`/user/info/${targetId}`);
     } catch (err) {
         console.log('Error: ' + err.message);
-        return res.render('search');
+        return res.render('search',{
+            user: req.user
+        });
     }
 }
 

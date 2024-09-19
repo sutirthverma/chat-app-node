@@ -3,62 +3,118 @@
 
 <head>
     <%- include('./partials/head.ejs') %>
-    <title>Homepage Page</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+        <title>Homepage Page</title>
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
-    <style>
-        body{
-            width: 100vw;
-        }
+        <style>
+            body {
+                width: 100vw;
+                overflow: hidden;
+            }
 
-        .row{
-            position: absolute;
-            bottom: 0;
-            width: 100vw;
-        }
 
-        li{
-            list-style-type: none;
-        }
-    </style>
+            li {
+                list-style-type: none;
+            }
+
+            .main{
+                display: flex;
+            }
+
+            .friendsList{
+                margin-right: 1em;
+                width: 15em;
+                height: 100vh;
+                background-color: #343a40;
+            }
+
+            ul{
+                padding-left: 0;
+            }
+
+            .friendsList  li {
+                color: #343a40;
+                font-weight: bold;
+                background-color: white;
+                padding: 1em;      
+                border-bottom: solid 1px #343a40;
+                border-right: solid 1px #343a40;  
+                cursor: pointer;   
+                overflow-y: auto;  
+            }
+
+            .no-friends{
+                width: 15em;
+                height: 100vh;
+                background-color: #343a40;
+                color: white;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .row .col{
+                height: 2.5em;
+                position: absolute;
+                bottom: 0;
+            }
+
+            .row .col input{
+                width: 75vw;
+            }
+
+        </style>
 </head>
 
 <body>
     <%- include('./partials/nav.ejs') %>
-    
-    <div class="messages"></div>
-    <div class="row">
-        <div class="col">
-            <input type="text" class="form-control" placeholder="Send message" aria-label="First name">
-        </div>
-        <div class="col">
-            <button class="btn btn-dark" type="submit">Send</button>
-        </div>
-    </div>
+
+        <!-- <div class="messages"></div> -->
+        <section class="main">
+            <% if (locals.friendsList) { %>
+                <div class="friendsList">
+                    <ul>
+                        <% friendsList.forEach(friend => { %>
+                            <li><%= friend.username %></li>
+                        <% }) %>
+                    </ul>
+                </div>
+            <%} else { %>
+                <p class="no-friends">No Friends!</p>
+            <% } %>
 
 
-    <%- include('./partials/script.ejs') %>
-        <script>
-            let socket = io();
-            let btn = document.querySelector('.btn');
-            let inp = document.querySelector('.form-control');
-            let messages = document.querySelector('.messages');
+            <div class="row">
+                <div class="col d-flex">
+                    <input type="text" class="form-control" placeholder="Send message" aria-label="First name">
+                    <button class="btn btn-dark" type="submit">Send</button>
+                </div>
+            </div>
+        </section>
 
-            btn.addEventListener('click', function () {
-                socket.emit('chat message', inp.value);
-                inp.value = '';
-            })
+        <%- include('./partials/script.ejs') %>
+            <script>
+                let socket = io();
+                let btn = document.querySelector('.btn');
+                let inp = document.querySelector('.form-control');
+                let messages = document.querySelector('.messages');
 
-            socket.on('msg', (msg) => {
-                let item = document.createElement('li');
-                item.textContent = msg;
-                messages.appendChild(item);
-            })
+                btn.addEventListener('click', function () {
+                    socket.emit('chat message', inp.value);
+                    inp.value = '';
+                })
 
-            socket.on('disconnected', (sock) => {
-                console.log('offline');                
-            })
-        </script>
+                socket.on('msg', (msg) => {
+                    let item = document.createElement('li');
+                    item.textContent = msg;
+                    messages.appendChild(item);
+                })
+
+                socket.on('disconnected', (sock) => {
+                    console.log('offline');
+                })
+            </script>
 </body>
 
 </html>

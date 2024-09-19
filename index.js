@@ -12,6 +12,7 @@ const userRouter = require('./routes/user_router');
 const { checkForAuthCookie , checkUserLoggedIn, currentUser} = require('./middlewares/auth_middleware');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const User = require('./models/user_model');
 
 makeConnection('mongodb://localhost:27017/chat-app')
 .then(() => console.log(`MongoDB Connected`));
@@ -28,11 +29,18 @@ app.use(express.static(path.resolve('./public')));
 app.set('view engine', 'ejs');
 app.set('views', './views');
 
-app.get('/', checkUserLoggedIn(), (req, res) => {
+app.get('/', checkUserLoggedIn(), async (req, res) => {
+
+    const friendsList = await User.find({
+        friends: req.user.id
+    });
+
     return res.render('homepage', {
-        user: req.user
+        user: req.user,
+        friendsList
     });
 })
+
 app.use('/user', userRouter);
 
 
