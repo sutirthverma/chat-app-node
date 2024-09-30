@@ -52,6 +52,9 @@ io.on('connection', async (socket) => {
     const userId = socket.handshake.auth.token;
     await User.updateOne({ _id:  userId }, { $set: { is_online: '1' }})
 
+    //broadcast user online
+    socket.broadcast.emit('getOnlineUser', { user_id: userId });
+
     socket.on('chat message', (message) => {
         console.log(message);
         io.emit('msg', message);
@@ -60,6 +63,9 @@ io.on('connection', async (socket) => {
     socket.on('disconnect', async () => {
         console.log(`User disconnected`);
         await User.updateOne({ _id:  userId }, { $set: { is_online: '0' }});
+
+        //broadcast user offline
+        socket.broadcast.emit('getOfflineUser', { user_id: userId });
 
         socket.emit('disconnected');
     })   

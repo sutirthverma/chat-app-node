@@ -78,14 +78,16 @@
         <section class="main">
             <% if (locals.friendsList) { %>
                 <div class="friendsList">
-                    <ul>
+                    <ul id="friendsList">
                         <% friendsList.forEach(friend => { %>
-                            <% if(friend.is_online == '1') { %>
-                            <li><%= friend.username %> <span>🟢</span></li>
-                            <% } else {%>
-                                <li><%= friend.username %></li>
-
-                            <% }%>
+                            <li id="friend-<%= friend._id %>">
+                                <%= friend.username %> 
+                                <% if(friend.is_online == '1') { %>
+                                    <span class="status">🟢</span>
+                                <% } else { %>
+                                    <span class="status"></span>
+                                <% } %>
+                            </li>
                         <% }) %>
                     </ul>
                 </div>
@@ -134,6 +136,30 @@
 
                 socket.on('disconnected', (sock) => {
                     //socket.emit('user_disconnected', userId);
+                })
+
+                //update user online
+                socket.on('getOnlineUser', (data) => {
+                    const userId = data.user_id;
+                    const userElement = document.getElementById(`friend-${userId}`);
+
+                    if(userElement){
+                        const statusElement = userElement.querySelector('.status');
+                        // Set the status to online (green circle)
+                        statusElement.textContent = '🟢';
+                    }
+                })
+
+                //update user offline
+                socket.on('getOfflineUser', (data) => {
+                    const userId = data.user_id;
+                    const userElement = document.getElementById(`friend-${userId}`);
+
+                    if(userElement){
+                        const statusElement = userElement.querySelector('.status');
+                        // Set the status to online (green circle)
+                        statusElement.textContent = '';
+                    }
                 })
 
             </script>
