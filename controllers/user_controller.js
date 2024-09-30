@@ -310,6 +310,26 @@ async function handleRemoveFriend(req, res){
     }
 }
 
+async function handleUpdateUserStatus(status){
+
+    try{
+
+        if(status){
+            
+        }
+
+    }catch(err){
+        console.log('Status Update Error: ' + err.message);
+        
+    }
+
+
+    if(status) 
+        console.log('online')
+    else
+        console.log('offline')
+}
+
 module.exports = {
     handleGetSignUpPage,
     handleSignUp,
@@ -324,5 +344,6 @@ module.exports = {
     handleUserSignOut,
     handleAcceptFriendRequest,
     handleRejectRequest,
-    handleRemoveFriend
+    handleRemoveFriend,
+    handleUpdateUserStatus
 }

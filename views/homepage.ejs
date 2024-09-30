@@ -64,6 +64,10 @@
                 width: 75vw;
             }
 
+            h1{
+                display: none;
+            }
+
         </style>
 </head>
 
@@ -76,7 +80,12 @@
                 <div class="friendsList">
                     <ul>
                         <% friendsList.forEach(friend => { %>
-                            <li><%= friend.username %></li>
+                            <% if(friend.is_online == '1') { %>
+                            <li><%= friend.username %> <span>🟢</span></li>
+                            <% } else {%>
+                                <li><%= friend.username %></li>
+
+                            <% }%>
                         <% }) %>
                     </ul>
                 </div>
@@ -84,21 +93,33 @@
                 <p class="no-friends">No Friends!</p>
             <% } %>
 
+            <h1 class="user-id"><%= user.id %></h1>
+
 
             <div class="row">
                 <div class="col d-flex">
+                    
                     <input type="text" class="form-control" placeholder="Send message" aria-label="First name">
                     <button class="btn btn-dark" type="submit">Send</button>
                 </div>
             </div>
-        </section>
+        </section>        
 
         <%- include('./partials/script.ejs') %>
             <script>
-                let socket = io();
+                
                 let btn = document.querySelector('.btn');
                 let inp = document.querySelector('.form-control');
                 let messages = document.querySelector('.messages');
+                const userId = document.querySelector('.user-id').textContent;
+                
+                let socket = io({
+                    auth: {
+                        token: userId
+                    }
+                });
+
+                socket.emit('user_connected', userId);
 
                 btn.addEventListener('click', function () {
                     socket.emit('chat message', inp.value);
@@ -109,11 +130,12 @@
                     let item = document.createElement('li');
                     item.textContent = msg;
                     messages.appendChild(item);
-                })
+                })                
 
                 socket.on('disconnected', (sock) => {
-                    console.log('offline');
+                    //socket.emit('user_disconnected', userId);
                 })
+
             </script>
 </body>
 

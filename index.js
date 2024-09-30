@@ -14,6 +14,7 @@ const { checkForAuthCookie , checkUserLoggedIn, currentUser} = require('./middle
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const User = require('./models/user_model');
+const { handleUpdateUserStatus } = require('./controllers/user_controller');
 
 makeConnection('mongodb://localhost:27017/chat-app')
 .then(() => console.log(`MongoDB Connected`));
@@ -46,16 +47,20 @@ app.use('/user', userRouter);
 app.use('/message', messageRouter);
 
 //Socket IO
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     console.log(`a user connected ${socket.id}`); 
+    const userId = socket.handshake.auth.token;
+    await User.updateOne({ _id:  userId }, { $set: { is_online: '1' }})
 
     socket.on('chat message', (message) => {
         console.log(message);
         io.emit('msg', message);
     })
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
         console.log(`User disconnected`);
+        await User.updateOne({ _id:  userId }, { $set: { is_online: '0' }});
+
         socket.emit('disconnected');
     })   
 })

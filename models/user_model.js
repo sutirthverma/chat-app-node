@@ -1,7 +1,6 @@
 const { createHmac, randomBytes, hash } = require('node:crypto');
 const mongoose = require('mongoose');
 const { createUserToken } = require('../services/authentication');
-const { log } = require('node:console');
 
 const userSchema = new mongoose.Schema({
     profileImage: {
@@ -26,6 +25,10 @@ const userSchema = new mongoose.Schema({
     },
     salt: {
         type: String
+    },
+    is_online: {
+        type: String,
+        default: '0'
     },
     friends: [
         {
