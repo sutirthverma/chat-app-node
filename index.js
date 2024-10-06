@@ -88,7 +88,11 @@ io.on('connection', async (socket) => {
             ]
         });
 
-        socket.emit('loadChats', { chats });    
+        socket.emit('loadChats', { chats });   
+        
+        socket.on('user-disconnect', () => {
+            console.log('user disocccnn');            
+        })
     })
 })
 

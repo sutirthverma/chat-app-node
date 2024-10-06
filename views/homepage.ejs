@@ -84,6 +84,11 @@
                 overflow: scroll;
             }
 
+            .tap-to-start-chat{
+                margin-top: 15em;
+                margin-left: 20em;
+            }
+
         </style>
 </head>
 
@@ -126,6 +131,10 @@
                 </form>
             </div>
 
+            <div class="tap-to-start-chat">
+                <h3>Tap on a friend to start chat</h3>
+            </div>
+
             <!-- <div class="row">
                 <div class="col d-flex">
                     
@@ -137,34 +146,50 @@
 
         <%- include('./partials/script.ejs') %>
             <script>
-                
                 let inp = document.querySelector('.form-control');
                 let messages = document.querySelector('.messages');
                 const userId = document.querySelector('.user-id').textContent;
                 let chatForm = document.querySelector('#chat-form');
-                
-                
+                let selectedFriendId = null;
                 let socket = io({
                     auth: {
                         token: userId
                     }
                 });
 
+
+                // Elements for toggling
+                const chatSection = document.querySelector('.chat-section');
+                const tapToStartChat = document.querySelector('.tap-to-start-chat');
+
+                function updateChatView() {
+                    if (selectedFriendId === null) {
+                        chatSection.style.display = 'none'; 
+                        tapToStartChat.style.display = 'block';
+                    } else {
+                        chatSection.style.display = 'block'; 
+                        tapToStartChat.style.display = 'none'; 
+                    }
+
+                }
+
+                updateChatView();                
+
+
                 socket.emit('user_connected', userId);
                 
                 const friendsList = document.getElementById('friendsList');
-                let selectedFriendId = null;
 
                 friendsList.addEventListener('click', function(event) {
                     const clickedItem = event.target.closest('li'); 
                     if (clickedItem && clickedItem.hasAttribute('data-id')) {
                         selectedFriendId = clickedItem.getAttribute('data-id');
                         console.log('Selected Friend ID:', selectedFriendId);
+                        updateChatView();
 
                         socket.emit('existingChat', { sender: userId, receiver: selectedFriendId })
                     }
                 });
-
 
                 //update user online
                 socket.on('getOnlineUser', (data) => {
@@ -189,6 +214,7 @@
                         statusElement.textContent = '';
                     }
                 })
+
 
                 //chat save for user
                 chatForm.addEventListener('submit', async function(){
