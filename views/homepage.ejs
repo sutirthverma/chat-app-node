@@ -5,6 +5,7 @@
     <%- include('./partials/head.ejs') %>
         <title>Homepage Page</title>
         <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"  crossorigin="anonymous"></script>
 
         <style>
             body {
@@ -68,6 +69,21 @@
                 display: none;
             }
 
+            .messages{
+                width: 50vw;
+            }            
+
+            .current-user-chat{
+                text-align: right;
+                margin-right: 1em;
+            }
+
+            .chat-container{
+                width: 100%;
+                height: 400px;
+                overflow: scroll;
+            }
+
         </style>
 </head>
 
@@ -80,7 +96,7 @@
                 <div class="friendsList">
                     <ul id="friendsList">
                         <% friendsList.forEach(friend => { %>
-                            <li id="friend-<%= friend._id %>">
+                            <li id="friend-<%= friend._id %>" data-id="<%=friend._id%>">
                                 <%= friend.username %> 
                                 <% if(friend.is_online == '1') { %>
                                     <span class="status">🟢</span>
@@ -98,22 +114,35 @@
             <h1 class="user-id"><%= user.id %></h1>
 
 
-            <div class="row">
+            <div class="chat-section">
+                <div class="chat-container">
+                    <!-- <p>Hii</p>
+                    <p class="current-user-chat">Hello</p> -->
+                </div>
+
+                <form action="" id="chat-form" method="post">
+                    <input type="text" name="message" placeholder="Send Message" required id="message">
+                    <button type="submit" value="Send Message">Send Button</button>
+                </form>
+            </div>
+
+            <!-- <div class="row">
                 <div class="col d-flex">
                     
                     <input type="text" class="form-control" placeholder="Send message" aria-label="First name">
                     <button class="btn btn-dark" type="submit">Send</button>
                 </div>
-            </div>
+            </div> -->
         </section>        
 
         <%- include('./partials/script.ejs') %>
             <script>
                 
-                let btn = document.querySelector('.btn');
                 let inp = document.querySelector('.form-control');
                 let messages = document.querySelector('.messages');
                 const userId = document.querySelector('.user-id').textContent;
+                let chatForm = document.querySelector('#chat-form');
+                
                 
                 let socket = io({
                     auth: {
@@ -122,21 +151,20 @@
                 });
 
                 socket.emit('user_connected', userId);
+                
+                const friendsList = document.getElementById('friendsList');
+                let selectedFriendId = null;
 
-                btn.addEventListener('click', function () {
-                    socket.emit('chat message', inp.value);
-                    inp.value = '';
-                })
+                friendsList.addEventListener('click', function(event) {
+                    const clickedItem = event.target.closest('li'); 
+                    if (clickedItem && clickedItem.hasAttribute('data-id')) {
+                        selectedFriendId = clickedItem.getAttribute('data-id');
+                        console.log('Selected Friend ID:', selectedFriendId);
 
-                socket.on('msg', (msg) => {
-                    let item = document.createElement('li');
-                    item.textContent = msg;
-                    messages.appendChild(item);
-                })                
+                        socket.emit('existingChat', { sender: userId, receiver: selectedFriendId })
+                    }
+                });
 
-                socket.on('disconnected', (sock) => {
-                    //socket.emit('user_disconnected', userId);
-                })
 
                 //update user online
                 socket.on('getOnlineUser', (data) => {
@@ -161,6 +189,80 @@
                         statusElement.textContent = '';
                     }
                 })
+
+                //chat save for user
+                chatForm.addEventListener('submit', async function(){
+                    event.preventDefault();
+
+                    const msg = document.querySelector('#message').value;
+                    console.log(userId + '\n' + selectedFriendId + '\n' + msg);
+
+                    try{
+
+                        $.ajax({
+                            url: '/user/save-chat',
+                            type: 'POST',
+                            data: {
+                                sender: userId,
+                                receiver: selectedFriendId,
+                                message: msg
+                            },
+                            success: function(resp){
+                                if(resp.success){
+                                    console.log(resp.chat.message);
+                                    $('#message').val('');
+                                    let chat = resp.chat.message;
+                                    let html = `<p class="current-user-chat">`+chat+`</p>`
+                                    $('.chat-container').append(html);
+                                    socket.emit('newChat', resp.chat);
+                                    scrollChat();
+                                }
+                            },
+                            error: function(err){
+                                console.log(err.responseText);
+                                
+                            }
+                        })
+                    }catch(err){
+                        console.log(`this is the error`);
+                        
+                        console.log(err.message);
+                    }
+                })
+
+                socket.on('loadNewChat', (data) => {
+                    if(data.receiver === userId && data.sender === selectedFriendId){
+                        let html = `<p class="distance-user-chat">`+data.message+`</p>`;
+                        $('.chat-container').append(html);
+                        scrollChat();
+                    }
+                })
+
+                //load old chats
+                socket.on('loadChats', (data) => {
+                    $('.chat-container').html('');
+                    let chats = data.chats;
+
+                    let html = '';
+
+                    for(let chat of chats){
+                        if(chat.sender === userId){
+                            html = `<p class='current-user-chat'>`+chat.message+`</p>`
+                        }else{
+                            html = `<p class='distance-user-chat'>`+chat.message+`</p>`
+                        }
+
+                        $('.chat-container').append(html);
+                        scrollChat();
+                    }
+                })
+
+                //auto scroll chat
+                function scrollChat(){
+                    $('.chat-container').animate({
+                        scrollTop: $('.chat-container').offset().top + $('.chat-container')[0].scrollHeight
+                    }, 0)
+                }
 
             </script>
 </body>

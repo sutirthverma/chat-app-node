@@ -3,6 +3,7 @@ const { Types } = require('mongoose');
 
 const { createUserToken } = require("../services/authentication");
 const { currentUser } = require("../middlewares/auth_middleware");
+const Message = require("../models/message_model");
 
 async function handleGetSignUpPage(req, res) {
     return res.render('signup')
@@ -113,9 +114,9 @@ async function handleGetSearchUser(req, res) {
         }
 
         res.render('search', {
-             usersList ,
-             user: req.user
-            });
+            usersList,
+            user: req.user
+        });
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).send('Server error');
@@ -131,43 +132,49 @@ async function handleGetSearchPage(req, res) {
 
 //User Info
 async function handleGetUserInfo(req, res) {
-    const userId = req.params.id;
-    const searchedUser = await User.findOne({ _id: userId });
-    const currUserId = req.user.id;
-    const currUser = await User.findOne({ _id: currUserId });
+    try {
+        const userId = req.params.id;
+        const searchedUser = await User.findOne({ _id: userId });
+        const currUserId = req.user.id;
+        const currUser = await User.findOne({ _id: currUserId });
 
-    let reqRec = false;
-    let reqSent = false;
-    let friends = false;
-    let sameuser = false;
+        let reqRec = false;
+        let reqSent = false;
+        let friends = false;
+        let sameuser = false;
 
-    if (currUserId == userId) {
-        sameuser = true;
-    } else if (currUser.reqRec.includes(userId)) {
-        reqRec = true;
-        console.log(`reqRec entered`);
-    } else if (currUser.reqSent.includes(userId)) {
-        reqSent = true;
-        console.log(`reqSent enterd`);
-    } else if (currUser.friends.includes(userId)) {
-        friends = true;
-        console.log(`friends entered`);
-    }
+        if (currUserId == userId) {
+            sameuser = true;
+        } else if (currUser.reqRec.includes(userId)) {
+            reqRec = true;
+            console.log(`reqRec entered`);
+        } else if (currUser.reqSent.includes(userId)) {
+            reqSent = true;
+            console.log(`reqSent enterd`);
+        } else if (currUser.friends.includes(userId)) {
+            friends = true;
+            console.log(`friends entered`);
+        }
 
-    if (!searchedUser) {
-        return res.render('search', {
-            user: req.user
+        if (!searchedUser) {
+            return res.render('search', {
+                user: req.user
+            });
+        }
+
+        return res.render('user', {
+            user: currUser,
+            searchedUser,
+            sameuser,
+            reqRec,
+            reqSent,
+            friends
         });
-    }
+    } catch (err) {
+        console.log(err.message);
+        return res.redirect('/')
 
-    return res.render('user', {
-        user: currUser,
-        searchedUser,
-        sameuser,
-        reqRec,
-        reqSent,
-        friends
-    });
+    }
 }
 
 async function handleAddFriend(req, res) {
@@ -217,7 +224,7 @@ async function handleRemoveRequest(req, res) {
         return res.redirect(`/user/info/${targetId}`);
     } catch (err) {
         console.log('Error: ' + err.message);
-        return res.render('search',{
+        return res.render('search', {
             user: req.user
         });
     }
@@ -239,7 +246,7 @@ async function handleDeleteAccount(req, res) {
 
 
 //Handling Friend Request
-async function handleAcceptFriendRequest(req, res){
+async function handleAcceptFriendRequest(req, res) {
     const targetId = req.params.id;
     const currId = req.user.id;
 
@@ -262,10 +269,10 @@ async function handleAcceptFriendRequest(req, res){
     });
 }
 
-async function handleRejectRequest(req, res){
-    try{
+async function handleRejectRequest(req, res) {
+    try {
         console.log('entered reject ');
-        
+
         const targetId = req.params.id;
         const currId = req.user.id;
 
@@ -280,14 +287,14 @@ async function handleRejectRequest(req, res){
                 reqRec: targetId
             }
         });
-    }catch(err){
-        console.log(err.message);        
+    } catch (err) {
+        console.log(err.message);
         return res.redirect(`/user/info/${targetId}`);
     }
 }
 
-async function handleRemoveFriend(req, res){
-    try{
+async function handleRemoveFriend(req, res) {
+    try {
         const targetId = req.params.id;
         const currId = req.user.id;
 
@@ -304,30 +311,45 @@ async function handleRemoveFriend(req, res){
         });
 
         return res.redirect(`/user/info/${targetId}`);
-    }catch(err){
+    } catch (err) {
         console.log(err.message);
-        return res.redirect('/');    
+        return res.redirect('/');
     }
 }
 
-async function handleUpdateUserStatus(status){
+async function handleUpdateUserStatus(status) {
 
-    try{
+    try {
 
-        if(status){
-            
+        if (status) {
+
         }
 
-    }catch(err){
+    } catch (err) {
         console.log('Status Update Error: ' + err.message);
-        
+
     }
 
 
-    if(status) 
+    if (status)
         console.log('online')
     else
         console.log('offline')
+}
+
+async function handleSaveChat(req, res) {
+    try {
+        const { sender, receiver, message } = req.body;
+        
+        let chat = await Message.create({
+            sender,
+            receiver,
+            message
+        })
+        return res.status(200).send({ success: true, message: 'Chat inserted', chat });
+    } catch (err) {
+        return res.status(400).json({ message: err.message });
+    }
 }
 
 module.exports = {
@@ -345,5 +367,6 @@ module.exports = {
     handleAcceptFriendRequest,
     handleRejectRequest,
     handleRemoveFriend,
-    handleUpdateUserStatus
+    handleUpdateUserStatus,
+    handleSaveChat
 }

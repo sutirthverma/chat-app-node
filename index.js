@@ -15,6 +15,8 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const User = require('./models/user_model');
 const { handleUpdateUserStatus } = require('./controllers/user_controller');
+const cors = require('cors');
+const Message = require('./models/message_model');
 
 makeConnection('mongodb://localhost:27017/chat-app')
 .then(() => console.log(`MongoDB Connected`));
@@ -22,6 +24,7 @@ makeConnection('mongodb://localhost:27017/chat-app')
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.json());
+app.use(cors());
 app.use(cookieParser());
 app.use( checkForAuthCookie('token') );
 //app.use( currentUser());
@@ -68,7 +71,25 @@ io.on('connection', async (socket) => {
         socket.broadcast.emit('getOfflineUser', { user_id: userId });
 
         socket.emit('disconnected');
-    })   
+    })
+
+    //chatting implementation
+    socket.on('newChat', (data) => {
+        socket.broadcast.emit('loadNewChat', data);
+    })
+
+    //load old chats
+    socket.on('existingChat', async (data) => {
+        let chats = await Message.find({
+            $or: [
+                { sender: data.sender, receiver: data.receiver },
+                { sender: data.receiver, receiver: data.sender }
+
+            ]
+        });
+
+        socket.emit('loadChats', { chats });    
+    })
 })
 
 server.listen(PORT, () => console.log(`Server Started`));

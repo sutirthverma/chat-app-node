@@ -15,7 +15,8 @@ const {
     handleUserSignOut,
     handleAcceptFriendRequest,
     handleRejectRequest,
-    handleRemoveFriend
+    handleRemoveFriend,
+    handleSaveChat
 } = require('../controllers/user_controller');
 
 const multer = require('multer');
@@ -65,5 +66,8 @@ Router.route('/reject-request/:id')
 
 Router.route('/remove-friend/:id')
 .post(handleRemoveFriend)
+
+Router.route('/save-chat')
+.post(handleSaveChat)
 
 module.exports = Router;
